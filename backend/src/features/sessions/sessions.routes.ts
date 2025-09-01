@@ -13,7 +13,7 @@ const sessionSchema = z.object({
     description: z.string(),
     startTime: z.string(),
     endTime: z.string(),
-    compensation: z.string()
+    compensation: z.string(),
 });
 
 const createSessionSchema = sessionSchema.omit({ id: true })
@@ -34,7 +34,9 @@ sessionsRoutes.get("/:id{[0-9]+}", async (c: Context) => {
 
 sessionsRoutes.post("/", zValidator("json", createSessionSchema), async (c) => {
     const data = c.req.valid("json");
-    const [session] = await db.insert(sessionsTable).values(data).returning();
+    const payload = c.get("jwtPayload")
+
+    const [session] = await db.insert(sessionsTable).values({ ...data, devId: payload.id }).returning();
     return c.json(session, 201);
 });
 
